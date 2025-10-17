@@ -1,6 +1,5 @@
 export type Row = {
   id: string;
-// uuid or timestamp
   name: string;
   email: string;
   age?: number;

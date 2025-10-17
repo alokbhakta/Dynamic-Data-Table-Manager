@@ -115,20 +115,19 @@ export default function DataTable() {
     dispatch(persistState());
   }
   function handleNewRow() {
-    // Generate a unique ID for the new row
+    
     const newId = `r_${Date.now()}`;
     
-    // Create a new empty row structure based on visible columns
+   
     const newRow: Row = {
         id: newId,
         name: '',
         email: '',
         age: 0,
         role: '',
-        // Initialize all *other* custom columns to empty string/0/null
         ...columns.reduce((acc, col) => {
             if (col.key !== 'name' && col.key !== 'email' && col.key !== 'age' && col.key !== 'role') {
-                acc[col.key] = ''; // Default to empty string for new columns
+                acc[col.key] = ''; 
             }
             return acc;
         }, {} as Partial<Row>)
@@ -136,9 +135,6 @@ export default function DataTable() {
 
     dispatch(addRow(newRow));
     dispatch(persistState());
-    
-    // Optional: Immediately open the new row for editing
-    // This allows the user to start entering data right away.
     dispatch(setEditedRow({ id: newId, data: newRow }));
 }
 
