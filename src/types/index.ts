@@ -3,7 +3,7 @@ export type Row = {
 // uuid or timestamp
   name: string;
   email: string;
-  age: number;
+  age?: number;
   role: string;
   [key: string]: any;
 };

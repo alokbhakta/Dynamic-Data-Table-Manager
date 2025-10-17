@@ -3,6 +3,7 @@ import { Button } from '@mui/material';
 import { parseCsv, toCsv } from '../lib/csv';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { setRows, persistState } from '../store/tableSlice';
+import { ColumnDef, Row } from '../types';
 import { saveAs } from 'file-saver';
 
 
@@ -18,7 +19,14 @@ export default function ImportExport() {
     try {
       const res = await parseCsv(f);
       // Map parsed data to Row[] format, ensuring each imported row has a unique 'id'
-      const parsed = res.data.map((r, i) => ({ id: `imp_${Date.now()}_${i}`, ...r }));
+      const parsed: Row[] = res.data.map((r, i) => ({
+  id: `imp_${Date.now()}_${i}`,
+  name: r.name ?? '',       // default to empty string if missing
+  email: r.email ?? '',     // required field
+  role: r.role ?? '',   // required field
+  age: r.age ? Number(r.age) : undefined, // optional field
+  // add other required fields from Row type
+}));
       dispatch(setRows(parsed));
       dispatch(persistState());
       alert('Imported ' + parsed.length + ' rows');
