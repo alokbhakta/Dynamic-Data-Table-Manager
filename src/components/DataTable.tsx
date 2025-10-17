@@ -106,10 +106,11 @@ export default function DataTable() {
     // Validate that ages are numbers
     for (const id in editedRows) {
       const ed = editedRows[id];
-      if (ed.age !== undefined && (ed.age === '' || isNaN(Number(ed.age)))) {
-        alert('Age must be a valid number for all edited rows.');
-        return;
-      }
+      const ageVal = ed.age;
+    if (ageVal === undefined || ageVal === null || isNaN(Number(ageVal))) {
+      alert('Age must be a valid number for all edited rows.');
+      return;
+    }
     }
     dispatch(applyAllEdits());
     dispatch(persistState());
@@ -235,7 +236,7 @@ export default function DataTable() {
                             <InlineCell
                               row={row}
                               colKey={col.key}
-                              edited={editedRows[row.id]?.[col.key]}
+                              edited={editedRows[row.id] ? editedRows[row.id][col.key] : undefined}
                               onChange={(v)=>onEditCell(row.id, col.key, v)}
                             />
                           </TableCell>
