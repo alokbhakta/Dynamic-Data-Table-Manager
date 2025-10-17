@@ -22,9 +22,9 @@ const initialState: TableState = (() => {
   } catch (e) {}
   return {
     rows: [
-      { id: 'r1', name: 'Alice Johnson', email: 'alice@example.com', age: 28, role: 'Designer' },
-      { id: 'r2', name: 'Bob Singh', email: 'bob@example.com', age: 32, role: 'Developer' },
-      { id: 'r3', name: 'Cathy Rao', email: 'cathy@example.com', age: 24, role: 'QA' }
+      { id: 'r1', name: 'Alok Kumar Bhakta', email: 'alokbhakta2018@gmail.com', age: 23, role: 'frontend Developer' },
+      { id: 'r2', name: 'Harsh Goyal', email: 'harsh@gmail.com', age: 22, role: 'Developer' },
+      { id: 'r3', name: 'Amit Yadav', email: 'amit@gmail.com', age: 23, role: 'Backend Developer' }
     ],
     columns: defaultColumns,
     editedRows: {},

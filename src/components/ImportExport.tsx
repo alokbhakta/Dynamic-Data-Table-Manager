@@ -18,14 +18,14 @@ export default function ImportExport() {
     if (!f) return;
     try {
       const res = await parseCsv(f);
-      // Map parsed data to Row[] format, ensuring each imported row has a unique 'id'
+      
       const parsed: Row[] = res.data.map((r, i) => ({
   id: `imp_${Date.now()}_${i}`,
-  name: r.name ?? '',       // default to empty string if missing
-  email: r.email ?? '',     // required field
-  role: r.role ?? '',   // required field
-  age: r.age ? Number(r.age) : undefined, // optional field
-  // add other required fields from Row type
+  name: r.name ?? '',       
+  email: r.email ?? '',     
+  role: r.role ?? '',   
+  age: r.age ? Number(r.age) : undefined, 
+ 
 }));
       dispatch(setRows(parsed));
       dispatch(persistState());

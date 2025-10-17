@@ -11,15 +11,14 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import ManageColumnsModal from './ManageColumnsModal';
 import ImportExport from './ImportExport';
 import ConfirmDialog from './ConfirmDialog';
-import { setColumns, setEditedRow, applyAllEdits, clearEditedRows, deleteRow, persistState } from '../store/tableSlice';
+import { setColumns, setEditedRow, applyAllEdits, clearEditedRows, deleteRow, persistState, addRow } from '../store/tableSlice';
 import { ColumnDef, Row } from '../types';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
-// --- InlineCell Component Implementation (Crucial for inline editing) ---
 type InlineCellProps = {
   row: Row;
   colKey: string;
-  edited: any; // Partial<Row>[keyof Partial<Row>]
+  edited: any; 
   onChange: (value: any) => void;
 };
 
@@ -27,29 +26,29 @@ const InlineCell: React.FC<InlineCellProps> = ({ row, colKey, edited, onChange }
   const isEditing = edited !== undefined;
   const value = isEditing ? edited : row[colKey];
 
-  // Logic to determine if the row has been explicitly marked as edited
+  
   const isRowEdited = useAppSelector(s => !!s.table.editedRows[row.id]);
   
-  // Use TextField for editing if the row is marked as edited
+ 
   if (isRowEdited) {
     return (
       <TextField
         value={value === null || value === undefined ? '' : value}
         onChange={(e) => onChange(e.target.value)}
-        onDoubleClick={(e) => e.stopPropagation()} // Prevent double-click action from bubbling up
+        onDoubleClick={(e) => e.stopPropagation()} 
         size="small"
         fullWidth
-        // Basic type-based input-handling for better UX
+       
         type={colKey === 'age' ? 'number' : 'text'}
         inputProps={colKey === 'age' ? { min: 0 } : {}}
       />
     );
   }
 
-  // Display the original or saved value otherwise
+ 
   return <span>{value}</span>;
 };
-// ------------------------------------------
+
 
 export default function DataTable() {
   const dispatch = useAppDispatch();
@@ -64,16 +63,16 @@ export default function DataTable() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toDelete, setToDelete] = useState<string | null>(null);
 
-  // Filtering & searching
+  
   const visibleColumns = columns.filter(c => c.visible);
   const filtered = useMemo(() => {
     if (!query) return rows;
     const q = query.toLowerCase();
-    // Searches all *visible* fields for the query string
+    
     return rows.filter(r => visibleColumns.some(c => String(r[c.key] ?? '').toLowerCase().includes(q)));
   }, [rows, query, visibleColumns]);
 
-  // Sorting
+  
   const sorted = useMemo(() => {
     if (!sortBy.dir) return filtered;
     const s = [...filtered].sort((a, b) => {
@@ -97,13 +96,13 @@ export default function DataTable() {
   }
 
   function onEditCell(id: string, key: string, value: any) {
-    // Basic validation: if key === 'age', numeric conversion
+    
     const validated = key === 'age' ? (value === '' ? '' : Number(value)) : value;
     dispatch(setEditedRow({ id, data: { [key]: validated } }));
   }
 
   function saveAll() {
-    // Validate that ages are numbers
+    
     for (const id in editedRows) {
       const ed = editedRows[id];
       const ageVal = ed.age;
@@ -115,6 +114,33 @@ export default function DataTable() {
     dispatch(applyAllEdits());
     dispatch(persistState());
   }
+  function handleNewRow() {
+    // Generate a unique ID for the new row
+    const newId = `r_${Date.now()}`;
+    
+    // Create a new empty row structure based on visible columns
+    const newRow: Row = {
+        id: newId,
+        name: '',
+        email: '',
+        age: 0,
+        role: '',
+        // Initialize all *other* custom columns to empty string/0/null
+        ...columns.reduce((acc, col) => {
+            if (col.key !== 'name' && col.key !== 'email' && col.key !== 'age' && col.key !== 'role') {
+                acc[col.key] = ''; // Default to empty string for new columns
+            }
+            return acc;
+        }, {} as Partial<Row>)
+    };
+
+    dispatch(addRow(newRow));
+    dispatch(persistState());
+    
+    // Optional: Immediately open the new row for editing
+    // This allows the user to start entering data right away.
+    dispatch(setEditedRow({ id: newId, data: newRow }));
+}
 
   function cancelAll() {
     dispatch(clearEditedRows());
@@ -148,38 +174,45 @@ export default function DataTable() {
   return (
     <Paper sx={{ p: { xs: 1, md: 2 } }}>
       
-      {/* Main Control Bar: Flex wrap on small screens */}
+      
       <Box 
         display="flex" 
-        flexDirection={{ xs: 'column', sm: 'row' }} // Stack vertically on xs, row on sm+
+        flexDirection={{ xs: 'column', sm: 'row' }} 
         justifyContent="space-between" 
         alignItems={{ xs: 'flex-start', sm: 'center' }} 
         mb={2} 
-        gap={2} // Add gap when stacked
+        gap={2} 
       >
         
-        {/* Left Side: Search, Manage, Import/Export */}
+        
         <Box 
           display="flex" 
-          flexDirection={{ xs: 'column', sm: 'row' }} // Stack search/buttons vertically on xs
+          flexDirection={{ xs: 'column', sm: 'row' }} 
           gap={1} 
           alignItems={{ xs: 'flex-start', sm: 'center' }}
           width={{ xs: '100%', sm: 'auto' }}
         >
-          {/* Search Field */}
+          
           <TextField 
             placeholder="Global search..." 
             value={query} 
             onChange={(e)=>{ setQuery(e.target.value); setPage(0); }} 
             size="small"
-            sx={{ width: { xs: '100%', sm: 200 } }} // Full width on small screens
+            sx={{ width: { xs: '100%', sm: 200 } }} 
           />
           <Button variant="outlined" onClick={()=>setManageOpen(true)} sx={{ minWidth: 'auto' }}>Manage Columns</Button>
-          {/* ImportExport component manages its own internal responsiveness */}
+          
           <ImportExport /> 
+          <Button 
+            variant="contained" 
+            onClick={handleNewRow} 
+            sx={{ minWidth: 'auto', bgcolor: 'success.main' }}
+          >
+            Add Row
+          </Button>
         </Box>
         
-        {/* Right Side: Save/Cancel All */}
+        
         <Box display="flex" gap={1} alignItems="center">
           <Button startIcon={<SaveIcon/>} variant="contained" onClick={saveAll} disabled={Object.keys(editedRows).length===0} size="small">Save All</Button>
           <Button startIcon={<CancelIcon/>} variant="outlined" onClick={cancelAll} disabled={Object.keys(editedRows).length===0} size="small">Cancel All</Button>
@@ -194,7 +227,7 @@ export default function DataTable() {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    {/* Render table headers, which are draggable */}
+                    
                     {columns.map((col, idx) => (
                       col.visible ? (
                         <Draggable key={col.key} draggableId={col.key} index={idx}>
@@ -219,14 +252,14 @@ export default function DataTable() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {/* Render table rows with pagination */}
+                  
                   {paged.map(row => (
                     <TableRow key={row.id}>
                       {columns.map(col => (
                         col.visible ? (
                           <TableCell 
                             key={col.key} 
-                            // Enables inline editing initialization by marking the row as edited
+                            
                             onDoubleClick={() => {
                                 if (!editedRows[row.id]) {
                                      dispatch(setEditedRow({ id: row.id, data: { ...row } }));
@@ -243,10 +276,10 @@ export default function DataTable() {
                         ) : null
                       ))}
                       <TableCell>
-                        {/* Edit Button: Initializes editing state for the row */}
+                        
                         <Tooltip title="Edit">
                           <IconButton size="small" onClick={() => {
-                            // If row is not yet in edit mode, copy all row data to editedRows as initial values
+                            
                             if (!editedRows[row.id]) {
                                 dispatch(setEditedRow({ id: row.id, data: { ...row } }));
                             }
@@ -255,7 +288,7 @@ export default function DataTable() {
                           </IconButton>
                         </Tooltip>
                         
-                        {/* Delete Button: Opens confirmation dialog */}
+                        
                         <Tooltip title="Delete">
                           <IconButton size="small" onClick={() => confirmDelete(row.id)}>
                             <DeleteIcon />
@@ -273,7 +306,7 @@ export default function DataTable() {
         </Droppable>
       </DragDropContext>
 
-      {/* Pagination control */}
+      
       <TablePagination
         component="div"
         count={sorted.length}
@@ -283,7 +316,7 @@ export default function DataTable() {
         rowsPerPageOptions={[10]}
       />
 
-      {/* Modals and Dialogs */}
+      
       <ManageColumnsModal 
         open={manageOpen} 
         onClose={()=>setManageOpen(false)} 
